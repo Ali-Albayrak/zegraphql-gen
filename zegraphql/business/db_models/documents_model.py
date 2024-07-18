@@ -89,7 +89,7 @@ class DocumentModel(BaseModel):
     status: Mapped[StatusEnum] = mapped_column(nullable=True, default=None)
 
     @classmethod
-    async def objects(cls, session):
+    def objects(cls, session):
         # obj = await Manager.async_init(cls, session)
         # return obj
         return Manager(cls, session)
