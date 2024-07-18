@@ -1,6 +1,6 @@
 import strawberry
 from strawberry.permission import PermissionExtension
-from graphql_types import DocumentType
+from business.types import DocumentType
 from business.db_models.documents_model import DocumentModel
 from core.depends import GraphQLContext
 from core.auth import Protect

@@ -1,13 +1,14 @@
 import enum
 import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 import strawberry
 from strawberry.permission import PermissionExtension
 
-from .base import BaseType
-from core.auth import Protect
+class BaseType:
 
-# select enums
+    def to_dict(self):
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_") and not callable(v)}
+
 @strawberry.enum
 class CategoryEnum(str, enum.Enum):
     hr = "hr"
@@ -36,6 +37,36 @@ class StatusEnum(str, enum.Enum):
     update = "update"
     delete = "delete"
 
+@strawberry.type
+class DocumentType(BaseType):
+    id: strawberry.ID 
+    created_on: Optional[datetime.datetime]
+    updated_on: Optional[datetime.datetime]
+    created_by: Optional[strawberry.ID]
+    updated_by: Optional[strawberry.ID]
+    tenant_id: Optional[strawberry.ID]
+    name: Optional[str]
+    report_source: Optional[str]
+    release_date: Optional[datetime.date]
+    expiry_date: Optional[datetime.date]
+    industry_document: Optional[strawberry.ID]
+    industry_document__details: Optional["IndustryType"]
+    category: Optional[str]
+    tags: Optional[str]
+    original_pdf: Optional[strawberry.ID]
+    status: Optional[str]
+
+@strawberry.type
+class IndustryType(BaseType):
+    id: strawberry.ID
+    created_on: datetime.datetime
+    updated_on: datetime.datetime
+    created_by: Optional[strawberry.ID]
+    updated_by: Optional[strawberry.ID]
+    tenant_id: Optional[strawberry.ID]
+    industry_document: Optional[list["DocumentType"]] 
+    industry_name: Optional[str]
+
 @strawberry.input
 class CreateDocumentInput(BaseType):
     id: Optional[strawberry.ID] = None
@@ -61,3 +92,14 @@ class UpdateDocumentInput(BaseType):
     tags: Optional[str] = None
     original_pdf: Optional[strawberry.ID] = None
     status: Optional[CategoryEnum] = None
+
+
+@strawberry.input
+class CreateIndustryInput(BaseType):
+    industry_name: str
+    id: Optional[strawberry.ID] = None
+
+@strawberry.input
+class UpdateIndustryInput(BaseType):
+    industry_name: Optional[str] = None
+

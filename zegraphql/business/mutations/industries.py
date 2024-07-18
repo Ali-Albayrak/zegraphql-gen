@@ -1,6 +1,6 @@
 import strawberry
 from strawberry.permission import PermissionExtension
-from graphql_types import IndustryType, CreateIndustryInput, UpdateIndustryInput
+from business.types import IndustryType, CreateIndustryInput, UpdateIndustryInput
 from business.db_models.industries_model import IndustryModel
 from core.depends import GraphQLContext
 from core.auth import Protect
