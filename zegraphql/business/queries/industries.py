@@ -19,12 +19,9 @@ class IndustryQuery:
     ])])
     async def get_industry(self, id: strawberry.ID,  info: strawberry.Info[GraphQLContext]) -> IndustryType:
         db = info.context.db
-        obj = await IndustryModel.objects(db)
+        obj = IndustryModel.objects(db)
         result = await obj.get(id=id)
         return result
-
-        if result:
-            return result
 
     @strawberry.field(extensions=[PermissionExtension(permissions=[Protect([
         "cybernetic-karari-industries-list",
@@ -34,7 +31,7 @@ class IndustryQuery:
     ])])
     async def list_industries(self, info: strawberry.Info[GraphQLContext]) -> list[IndustryType]:
         db = info.context.db
-        obj = await IndustryModel.objects(db)
+        obj = IndustryModel.objects(db)
         result = await obj.all()
         return result
     

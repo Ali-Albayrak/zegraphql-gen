@@ -18,22 +18,10 @@ class DocumentQuery:
     ])
     ])])
     async def get_document(self, id: strawberry.ID,  info: strawberry.Info[GraphQLContext]) -> DocumentType:
-        # db = next(get_sync_db())
-        # print(f"{info.context=}")
-        # print(f"{dir(info.context)=}")
-        # print(f"{type(info.context)=}")
-        # print(f"{info.context.keys()=}")
-        # print(f"{info.context['request']=}")
-        # print(f"{dir(info.context['request'])=}")
-        # print(f"{type(info.context['request'])=}")
-        # print(f"{info.context.keys()=}")
         db = info.context.db
-        obj = await DocumentModel.objects(db)
+        obj = DocumentModel.objects(db)
         result = await obj.get(id=id)
         return result
-
-        if result:
-            return result
 
     @strawberry.field(extensions=[PermissionExtension(permissions=[Protect([
         "cybernetic-karari-documents-list",
@@ -43,7 +31,7 @@ class DocumentQuery:
     ])])
     async def list_documents(self, info: strawberry.Info[GraphQLContext]) -> list[DocumentType]:
         db = info.context.db
-        obj = await DocumentModel.objects(db)
+        obj = DocumentModel.objects(db)
         result = await obj.all()
         return result
     
