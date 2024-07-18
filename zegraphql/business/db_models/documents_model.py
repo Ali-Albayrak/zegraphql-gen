@@ -53,30 +53,6 @@ class DocumentModel(BaseModel):
     __tablename__ = 'documents'
     __table_args__ = {'schema': os.environ.get('DEFAULT_SCHEMA', 'public')}
 
-
-    # name = Column(Text, nullable=False, default=None)
-
-    # report_source = Column(Text, nullable=False, default=None)
-
-    # release_date = Column(DATE, nullable=False, default=None)
-
-    # expiry_date = Column(DATE, nullable=True, default=None)
-
-
-    # industry_document = Column(UUID(as_uuid=True), ForeignKey(os.environ.get('DEFAULT_SCHEMA', 'public') + ".industries.id"))
-    # industry_document__details = relationship("IndustryModel", foreign_keys=[industry_document], back_populates='industry_document')
-
-
-
-    # category = Column(Enum(CategoryEnum), nullable=False, default=None)
-
-    # tags = Column(Text, nullable=True, default=None)
-
-    # original_pdf = Column(UUID(as_uuid=True), ForeignKey("public.files.id"))
-
-    # status = Column(Enum(StatusEnum), nullable=True, default=None)
-
-
     name: Mapped[str] = mapped_column(nullable=False, default=None)
     report_source: Mapped[str] = mapped_column(nullable=False, default=None)
     release_date: Mapped[datetime] = mapped_column(nullable=False, default=None)
@@ -90,8 +66,6 @@ class DocumentModel(BaseModel):
 
     @classmethod
     def objects(cls, session):
-        # obj = await Manager.async_init(cls, session)
-        # return obj
         return Manager(cls, session)
 
 

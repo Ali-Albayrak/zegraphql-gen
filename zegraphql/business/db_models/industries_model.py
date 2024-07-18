@@ -27,17 +27,11 @@ class IndustryModel(BaseModel):
 
 
     from business.db_models.documents_model import DocumentModel
-    # industry_document = relationship('DocumentModel', foreign_keys=[DocumentModel.industry_document], back_populates='industry_document__details')
-
-    # industry_name = Column(Text, nullable=True, default=None)
-
     industry_document: Mapped[list["DocumentModel"]] = relationship(foreign_keys=[DocumentModel.industry_document], back_populates="industry_document__details", lazy="selectin")
     industry_name: Mapped[str] = mapped_column(nullable=True, default=None)
 
     @classmethod
     def objects(cls, session):
-        # obj = await Manager.async_init(cls, session)
-        # return obj
         return Manager(cls, session)
 
 
