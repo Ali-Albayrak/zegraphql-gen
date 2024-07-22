@@ -13,19 +13,19 @@ def generate_permission(provider_name, app_name, plural_name, permission_type):
 ## <% for obj_name, obj_details in objects.items(): %>
 import strawberry
 from strawberry.permission import PermissionExtension
-from business.types import ${obj_name.capitalize()}Type, Create${obj_name.capitalize()}Input, Update${obj_name.capitalize()}Input
-from business.db_models.${obj_name}_model import ${obj_name.capitalize()}Model
+from business.types import ${get_pascal_case_without_underscore(obj_name)}Type, Create${get_pascal_case_without_underscore(obj_name)}Input, Update${get_pascal_case_without_underscore(obj_name)}Input
+from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model
 from core.depends import GraphQLContext
 from core.auth import Protect
 
 @strawberry.type
-class ${obj_name.capitalize()}Mutation:
+class ${get_pascal_case_without_underscore(obj_name)}Mutation:
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
         ${generate_permission(provider_name, app_name, obj_details['plural'], 'create')}
     ])])])
-    async def create_${obj_name}(self, input: Create${obj_name.capitalize()}Input, info: strawberry.Info[GraphQLContext]) -> ${obj_name.capitalize()}Type:
+    async def create_${obj_name}(self, input: Create${get_pascal_case_without_underscore(obj_name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
         db = info.context.db
-        obj = ${obj_name.capitalize()}Model.objects(db)
+        obj = ${get_pascal_case_without_underscore(obj_name)}Model.objects(db)
         new_data = input.to_dict()
         kwargs = {
             "model_data": new_data,
@@ -42,9 +42,9 @@ class ${obj_name.capitalize()}Mutation:
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
         ${generate_permission(provider_name, app_name, obj_details['plural'], 'update')}
     ])])])
-    async def update_${obj_name}(self, id: strawberry.ID, input: Update${obj_name.capitalize()}Input, info: strawberry.Info[GraphQLContext]) -> ${obj_name.capitalize()}Type:
+    async def update_${obj_name}(self, id: strawberry.ID, input: Update${get_pascal_case_without_underscore(obj_name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
         db = info.context.db
-        obj = ${obj_name.capitalize()}Model.objects(db)
+        obj = ${get_pascal_case_without_underscore(obj_name)}Model.objects(db)
         result = await obj.update(id, **input.to_dict())
         return result
 
@@ -53,7 +53,7 @@ class ${obj_name.capitalize()}Mutation:
     ])])])
     async def delete_${obj_name}(self, id: strawberry.ID, info: strawberry.Info[GraphQLContext]) -> bool:
         db = info.context.db
-        obj = ${obj_name.capitalize()}Model.objects(db)
+        obj = ${get_pascal_case_without_underscore(obj_name)}Model.objects(db)
         result = await obj.delete(id)
 
         return True

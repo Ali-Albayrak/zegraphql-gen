@@ -22,7 +22,7 @@ def generate_fields(fields):
         elif field_type == 'file':
             field_type_str = 'strawberry.ID'
         elif field_type == 'select':
-            enum_name = f"{field_name.capitalize()}Enum"
+            enum_name = f"{get_pascal_case_without_underscore(field_name)}Enum"
             field_type_str = enum_name
         else:
             field_type_str = 'str'
@@ -42,7 +42,7 @@ class BaseType:
 % for field in obj_details['fields']:
 % if field['field_type'] == 'select':
 <%
-enum_name = f"{field['name'].capitalize()}Enum"
+enum_name = f"{get_pascal_case_without_underscore(field['name'])}Enum"
 options = field['options']['options']
 %>
 @strawberry.enum
@@ -54,15 +54,15 @@ class ${enum_name}(str, enum.Enum):
 % endfor
 
 @strawberry.type
-class ${obj_name.capitalize()}Type(BaseType):
+class ${get_pascal_case_without_underscore(obj_name)}Type(BaseType):
     ${generate_fields(obj_details['fields'])}
 
 @strawberry.input
-class Create${obj_name.capitalize()}Input(BaseType):
+class Create${get_pascal_case_without_underscore(obj_name)}Input(BaseType):
     ${generate_fields(obj_details['fields'])}
 
 @strawberry.input
-class Update${obj_name.capitalize()}Input(BaseType):
+class Update${get_pascal_case_without_underscore(obj_name)}Input(BaseType):
     id: Optional[strawberry.ID] = None
     ${generate_fields(obj_details['fields'])}
 % endfor
