@@ -1,0 +1,77 @@
+generators:
+  - zegraphql
+templates: # where mako engine tries to find the templates referenced by a version
+  - templates
+  - templates/zegraphql
+  - templates/zegraphql/business
+  - templates/zegraphql/business/db_models
+  - templates/zegraphql/business/mutations
+  - templates/zegraphql/business/queries
+  - templates/zegraphql/actions # did not create this folder templates yet
+config: # generators processing configuration
+  rest:
+    targets:
+        - zegraphql
+        - zegraphql/business
+        - zegraphql/business/db_models
+        - zegraphql/business/mutations
+        - zegraphql/business/queries
+        - zegraphql/actions # did not create this folder templates yet
+    #######################################
+    #### did not check the below part #####
+    #######################################
+    # files:
+    #   root:
+    #     - target: rest/api.py
+    #       template: api.py.mako
+    #       data: 
+    #         app_name: app.name
+    #     - target: rest/pyproject.toml
+    #       template: pyproject.toml.mako
+    #       data:
+    #         app_name: app.name
+    #         version: app.version
+    #         provider: environment.mode
+    #     - target: rest/core
+    #       folder: true
+    #       source: templates/rest/core
+    #     - target: rest/Dockerfile
+    #       template: Dockerfile
+    #     - target: rest/poetry.lock
+    #       template: poetry.lock
+      
+    #   rest.business:
+    #     - target: rest/business/__init__.py
+    #       template: business__init__.py.mako
+    #       data:
+    #         provider: environment.mode
+    #     - target: rest/business
+    #       template: schema.mako
+    #       data:
+    #         _fields: data
+    #       iter: 
+    #         source: data #source of iterator
+    #         file_name: 
+    #           - variable: plural #comign from the app.yaml in every list item within the source
+    #           - text: _schema
+    #           - suffix: .py
+    #     - target: rest/business
+    #       template: model.mako
+    #       data:
+    #         _fields: data
+    #       iter:
+    #         source: data
+    #         file_name:
+    #           - variable: plural
+    #           - text: _model
+    #           - suffix: .py
+    #   rest.actions:
+    #     - target: rest/actions
+    #       template: actions/action_event.mako
+    #       data:
+    #         _fields: actions
+    #       iter:
+    #         source: actions
+    #         file_name:
+    #           - variable: name
+    #           - suffix: .py
