@@ -14,14 +14,14 @@ def generate_permission(provider_name, app_name, plural_name, permission_type):
 import strawberry
 from strawberry.permission import PermissionExtension
 from business.types import ${get_pascal_case_without_underscore(obj_name)}Type, Create${get_pascal_case_without_underscore(obj_name)}Input, Update${get_pascal_case_without_underscore(obj_name)}Input
-from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model
+from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model, , ${get_pascal_case_without_underscore(plural)}Access
 from core.depends import GraphQLContext
 from core.auth import Protect
 
 @strawberry.type
 class ${get_pascal_case_without_underscore(obj_name)}Mutation:
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
-        ${generate_permission(provider_name, app_name, obj_details['plural'], 'create')}
+        ${get_pascal_case_without_underscore(plural)}Access.create_roles()
     ])])])
     async def create_${obj_name}(self, input: Create${get_pascal_case_without_underscore(obj_name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
         db = info.context.db
@@ -40,7 +40,7 @@ class ${get_pascal_case_without_underscore(obj_name)}Mutation:
         return new_${obj_name}
 
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
-        ${generate_permission(provider_name, app_name, obj_details['plural'], 'update')}
+        ${get_pascal_case_without_underscore(plural)}Access.update_roles()
     ])])])
     async def update_${obj_name}(self, id: strawberry.ID, input: Update${get_pascal_case_without_underscore(obj_name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
         db = info.context.db
@@ -49,7 +49,8 @@ class ${get_pascal_case_without_underscore(obj_name)}Mutation:
         return result
 
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
-        ${generate_permission(provider_name, app_name, obj_details['plural'], 'delete')}
+        ## ${generate_permission(provider_name, app_name, obj_details['plural'], 'delete')}
+        ${get_pascal_case_without_underscore(plural)}Access.delete_roles()
     ])])])
     async def delete_${obj_name}(self, id: strawberry.ID, info: strawberry.Info[GraphQLContext]) -> bool:
         db = info.context.db

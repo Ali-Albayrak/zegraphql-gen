@@ -12,16 +12,14 @@ def generate_permissions(provider_name, app_name, plural_name):
 import strawberry
 from strawberry.permission import PermissionExtension
 from business.types import ${get_pascal_case_without_underscore(obj_name)}Type
-from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model
+from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model, ${get_pascal_case_without_underscore(plural)}Access
 from core.depends import GraphQLContext
 from core.auth import Protect
 
 @strawberry.type
 class ${get_pascal_case_without_underscore(obj_name)}Query:
     @strawberry.field(extensions=[PermissionExtension(permissions=[Protect([
-        % for perm in generate_permissions(provider_name, app_name, obj_details['plural']):
-        "${perm}",
-        % endfor
+        ${get_pascal_case_without_underscore(plural)}Access.list_roles()
     ])])])
     async def get_${obj_name}(self, id: strawberry.ID, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
         db = info.context.db
@@ -30,9 +28,7 @@ class ${get_pascal_case_without_underscore(obj_name)}Query:
         return result
 
     @strawberry.field(extensions=[PermissionExtension(permissions=[Protect([
-        % for perm in generate_permissions(provider_name, app_name, obj_details['plural']):
-        "${perm}",
-        % endfor
+        ${get_pascal_case_without_underscore(plural)}Access.list_roles()
     ])])])
     async def list_${obj_details['plural']}(self, info: strawberry.Info[GraphQLContext]) -> list[${get_pascal_case_without_underscore(obj_name)}Type]:
         db = info.context.db

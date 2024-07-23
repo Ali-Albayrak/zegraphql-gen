@@ -240,38 +240,7 @@ class ${get_pascal_case_without_underscore(field["name"])}Enum(${enum_field_type
             response += f", default=None"
         return response
 %>\
-## get field annotations
-        ## for field in fields:
-        ##     field_name = field['name']
-        ##     field_type = field['field_type']
-        ##     required = field.get('required')
-        ##     default = field.get('default')
-        ##     if field_type == 'text':
-        ##         annotations[field_name] = 'str'
-        ##     elif field_type == 'integer':
-        ##         annotations[field_name] = 'int'
-        ##     elif field_type == 'boolean':
-        ##         annotations[field_name] = 'bool'
-        ##     elif field_type == 'select':
-        ##         if field.get("options") and field.get("options", {}).get("multi"):
-        ##             annotations[field_name] = f'List[{get_field_annotations([{"field_type": field.get("options", {}).get("type", "text")}])[field_name]}]'
-        ##         else:
-        ##             annotations[field_name] = f'{get_pascal_case_without_underscore(field_name)}Enum'
-        ##     elif field_type == 'json':
-        ##         annotations[field_name] = 'dict'
-        ##     elif field_type == 'date':
-        ##         annotations[field_name] = 'datetime.date'
-        ##     elif field_type == 'lookup':
-        ##         annotations[field_name] = 'str'
-        ##     elif field_type in ['image', 'file']:
-        ##         annotations[field_name] = 'uuid.UUID'
-        ##     elif field_type == 'email':
-        ##         annotations[field_name] = 'str'
-        ##     elif field_type == 'array':
-        ##         annotations[field_name] = f'List[{get_field_annotations([{"field_type": field['options']['array_of']}])[field_name]}]'
-        ##     elif field_type == 'rel':
-        ##         annotations[field_name] = 'uuid.UUID'
-        ## return annotations
+
 <%!
     def get_field_annotation(field):
         response = ''
@@ -376,3 +345,75 @@ class ${name.title()}Model(BaseModel):
         % else:
             return Manager(cls, session)
         % endif
+
+
+
+
+<%
+    def get_related_tables():
+        """
+        To have full access on a table user must have proper proper roles on tables which attached to this table to fetch the details properly 
+        """
+        related_tables = [plural]
+        for field in fields:
+            if field['field_type'] == 'rel':
+                if parent := field['options'].get('parent'):
+                    if '$' not in parent:
+                        related_tables.append(parent)
+                if children := field['options'].get('children'):
+                    related_tables.append(children)
+        return related_tables
+
+    def generate_related_roles():
+        related_tables = get_related_tables()
+        related_roles = []
+        for table in related_tables:
+            role_prefix = f"{app_provider}-{app_name}-{table}"
+            related_roles.extend([
+                f"{role_prefix}-list",
+                f"{role_prefix}-tenant-list",
+                f"{role_prefix}-root-list"
+            ])
+        return related_roles
+
+    def generate_target_table_roles(action:str) -> str:
+        """
+        Add protection layer in the begining of the method if solution is secured.
+
+        Parameters:
+        - action (str): The action for which roles are generated.
+        """
+        current_table = plural
+
+        role_prefix = f"{app_provider}-{app_name}-{current_table}"
+        current_table_roles = [
+            f"{role_prefix}-{action}",
+            f"{role_prefix}-tenant-{action}",
+            f"{role_prefix}-root-{action}"
+        ]
+        return current_table_roles
+
+%>\
+
+class ${get_pascal_case_without_underscore(plural)}Access:
+    related_access_roles = ${generate_related_roles()}     
+
+    @classmethod
+    def list_roles(cls):
+        list_roles = ${generate_target_table_roles('list')}
+        return list(set(list_roles + cls.related_access_roles))
+
+    @classmethod
+    def create_roles(cls):
+        create_roles = ${generate_target_table_roles('create')}
+        return create_roles + cls.related_access_roles
+
+    @classmethod
+    def update_roles(cls):
+        update_roles = ${generate_target_table_roles('update')}
+        return update_roles + cls.related_access_roles
+
+    @classmethod
+    def delete_roles(cls):
+        delete_roles = ${generate_target_table_roles('delete')}
+        return delete_roles + cls.related_access_roles
