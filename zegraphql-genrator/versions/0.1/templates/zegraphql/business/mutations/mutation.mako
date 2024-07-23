@@ -1,20 +1,13 @@
 <%!
-# Helper function to generate permission strings for mutations
-def generate_permission(provider_name, app_name, plural_name, permission_type):
-    permissions = [
-        f"{provider_name}-{app_name}-{plural_name}-{permission_type}"
-    ]
-    if permission_type != 'create':
-        permissions.append(f"{provider_name}-{app_name}-{plural_name}-tenant-{permission_type}")
-        permissions.append(f"{provider_name}-{app_name}-{plural_name}-root-{permission_type}")
-    return permissions
+    obj_name = name
+    plural = plural
 %>
 
 ## <% for obj_name, obj_details in objects.items(): %>
 import strawberry
 from strawberry.permission import PermissionExtension
 from business.types import ${get_pascal_case_without_underscore(obj_name)}Type, Create${get_pascal_case_without_underscore(obj_name)}Input, Update${get_pascal_case_without_underscore(obj_name)}Input
-from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model, , ${get_pascal_case_without_underscore(plural)}Access
+from business.db_models.${plural}_model import ${get_pascal_case_without_underscore(obj_name)}Model, , ${get_pascal_case_without_underscore(plural)}Access
 from core.depends import GraphQLContext
 from core.auth import Protect
 
