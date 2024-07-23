@@ -1,18 +1,13 @@
 <%!
-# Helper function to generate permission strings
-def generate_permissions(provider_name, app_name, plural_name):
-    return [
-        f"{provider_name}-{app_name}-{plural_name}-list",
-        f"{provider_name}-{app_name}-{plural_name}-root-list",
-        f"{provider_name}-{app_name}-{plural_name}-tenant-list"
-    ]
+    obj_name = name
+    plural = plural
 %>
 ## this for loop should be removed after figuring out how to get variables from the manifest file
 ## % for obj_name, obj_details in objects.items():
 import strawberry
 from strawberry.permission import PermissionExtension
 from business.types import ${get_pascal_case_without_underscore(obj_name)}Type
-from business.db_models.${obj_name}_model import ${get_pascal_case_without_underscore(obj_name)}Model, ${get_pascal_case_without_underscore(plural)}Access
+from business.db_models.${plural}_model import ${get_pascal_case_without_underscore(obj_name)}Model, ${get_pascal_case_without_underscore(plural)}Access
 from core.depends import GraphQLContext
 from core.auth import Protect
 
