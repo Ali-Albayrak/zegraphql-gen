@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "karari"
-version = "0.0.1"
+name = "${app_name}"
+version = "${version}"
 description = ""
 authors = ["ZeKoder <dev@zekoder.com>"]
 
