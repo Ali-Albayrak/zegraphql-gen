@@ -1,5 +1,8 @@
 import os
 import enum
+% if 'rel' in [field['field_type'] for field in fields]:
+import importlib
+% endif
 
 <%!
     def get_column_dependencies(fields):
@@ -57,6 +60,129 @@ def load_actions(triggers):
         return f"from actions import {actions}"
 %>
 ${load_actions(triggers)}
+
+% if triggers:
+class CustomManager(Manager):
+    % if triggers and triggers.get("create"):
+    async def pre_create(self, **kwargs) -> dict:
+        try:
+            jwt = kwargs.get("jwt", {})
+            new_data = kwargs.get("new_data", {})
+            old_data = kwargs.get("old_data", {})
+            well_known_urls = kwargs.get("well_known_urls", {})
+            % for trigger in triggers.get("create"):
+            new_data = ${trigger}.handler(jwt=jwt, new_data=new_data, old_data=old_data, well_known_urls=well_known_urls, method="create")
+            % endfor
+            return new_data
+        except TriggerException as e:
+            raise e
+        except Exception as err:
+            log.warn("at least one step in pre_create trigger has been skipped")
+            log.debug(err)
+            log.error("Error while executing pre_create trigger, check the debug above!")
+            return new_data
+    % endif
+
+    % if triggers and triggers.get("post_create"):
+    async def post_create(self, **kwargs) -> dict:
+        try:
+            jwt = kwargs.get("jwt", {})
+            new_data = kwargs.get("new_data", {})
+            old_data = kwargs.get("old_data", {})
+            well_known_urls = kwargs.get("well_known_urls", {})
+            % for trigger in triggers.get("post_create"):
+            new_data = ${trigger}.handler(jwt=jwt, new_data=new_data, old_data=old_data, well_known_urls=well_known_urls, method="create")
+            % endfor
+            return new_data
+        except TriggerException as e:
+            raise e
+        except Exception as err:
+            log.warn("at least one step in post_create trigger has been skipped")
+            log.debug(err)
+            log.error("Error while executing post_create trigger, check the debug above!")
+            return new_data
+    % endif
+
+    % if triggers and triggers.get("update"):
+    async def pre_update(self, **kwargs) -> dict:
+        try:
+            jwt = kwargs.get("jwt", {})
+            new_data = kwargs.get("new_data", {})
+            old_data = kwargs.get("old_data", {})
+            well_known_urls = kwargs.get("well_known_urls", {})
+            % for trigger in triggers.get("update"):
+            new_data = ${trigger}.handler(jwt=jwt, new_data=new_data, old_data=old_data, well_known_urls=well_known_urls, method="update")
+            % endfor
+            return new_data
+        except TriggerException as e:
+            raise e
+        except Exception as err:
+            log.warn("at least one step in pre_update trigger has been skipped")
+            log.debug(err)
+            log.error("Error while executing pre_update trigger, check the debug above!")
+            return new_data
+    % endif
+
+    % if triggers and triggers.get("post_update"):
+    async def post_update(self, **kwargs) -> dict:
+        try:
+            jwt = kwargs.get("jwt", {})
+            new_data = kwargs.get("new_data", {})
+            old_data = kwargs.get("old_data", {})
+            well_known_urls = kwargs.get("well_known_urls", {})
+            % for trigger in triggers.get("post_update"):
+            new_data = ${trigger}.handler(jwt=jwt, new_data=new_data, old_data=old_data, well_known_urls=well_known_urls, method="update")
+            % endfor
+            return new_data
+        except TriggerException as e:
+            raise e
+        except Exception as err:
+            log.warn("at least one step in post_update trigger has been skipped")
+            log.debug(err)
+            log.error("Error while executing post_update trigger, check the debug above!")
+            return new_data
+    % endif
+
+    % if triggers and triggers.get("delete"):
+    async def pre_delete(self, **kwargs) -> bool:
+        try:
+            jwt = kwargs.get("jwt", {})
+            new_data = kwargs.get("new_data", {})
+            old_data = kwargs.get("old_data", {})
+            well_known_urls = kwargs.get("well_known_urls", {})
+            % for trigger in triggers.get("delete"):
+            new_data = ${trigger}.handler(jwt=jwt, new_data=new_data, old_data=old_data, well_known_urls=well_known_urls, method="delete")
+            % endfor
+            return new_data
+        except TriggerException as e:
+            raise e
+        except Exception as err:
+            log.warn("at least one step in pre_delete trigger has been skipped")
+            log.debug(err)
+            log.error("Error while executing pre_delete trigger, check the debug above!")
+            return new_data
+    % endif
+
+    % if triggers and triggers.get("post_delete"):
+    async def post_delete(self, **kwargs) -> bool:
+        try:
+            jwt = kwargs.get("jwt", {})
+            new_data = kwargs.get("new_data", {})
+            old_data = kwargs.get("old_data", {})
+            well_known_urls = kwargs.get("well_known_urls", {})
+            % for trigger in triggers.get("post_delete"):
+            new_data = ${trigger}.handler(jwt=jwt, new_data=new_data, old_data=old_data, well_known_urls=well_known_urls, method="delete")
+            % endfor
+            return new_data
+        except TriggerException as e:
+            raise e
+        except Exception as err:
+            log.warn("at least one step in post_delete trigger has been skipped")
+            log.debug(err)
+            log.error("Error while executing post_delete trigger, check the debug above!")
+            return new_data
+    % endif
+% endif
 
 % for field in fields:
 % if field["field_type"] == "select" and field.get('options', {}).get("options", {}):
@@ -180,6 +306,23 @@ class ${get_pascal_case_without_underscore(field["name"])}Enum(${enum_field_type
             response = 'uuid.UUID'
         return response
 %>\
+<%!
+    def validate_relation(_fields, relation):
+        plural = None
+        for key, value in _fields.data.items():
+            if value["plural"] == relation:
+                value["name"] = key
+                plural = value
+        return plural
+%>
+<%!
+    def is_peer_back_populate(child, plural):
+        for value in child.get("fields"):
+            if value["name"] == plural:
+                return plural
+        return
+%>
+
 
 class ${name.title()}Model(BaseModel):
     __tablename__ = '${plural}'
