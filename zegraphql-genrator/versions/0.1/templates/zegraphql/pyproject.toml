@@ -8,10 +8,8 @@ authors = ["ZeKoder <dev@zekoder.com>"]
 python = "^3.10"
 uvicorn = "^0.17.6"
 requests = "~2.28"
-jsonschema = "^4.19.1"
 
 psycopg2-binary = "^2.9.3"
-dapr = "^1.8.3"
 asyncpg = "^0.28.0"
 httpx = "^0.25.0"
 python-dotenv = "^1.0.0"
