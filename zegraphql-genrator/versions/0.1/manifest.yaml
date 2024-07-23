@@ -28,7 +28,7 @@ config: # generators processing configuration
           data:
             app_name: app.name
             version: app.version
-        - target: zegrpahql/core
+        - target: zegraphql/core
           folder: true
           source: templates/zegraphql/core
         # not ready yet
@@ -37,14 +37,14 @@ config: # generators processing configuration
         # - target: rest/poetry.lock
         #   template: poetry.lock
 
-      zegrpahql.business:
+      zegraphql.business:
         - target: zegraphql/business/__init__.py
         - target: zegraphql/business/types.py
           template: types.mako
           data:
             objects: data
 
-      zegrpahql.business.db_models:
+      zegraphql.business.db_models:
         - target: zegraphql/business/db_models/__init__.py
         - target: zegraphql/business/db_models
           template: model.mako
@@ -57,7 +57,7 @@ config: # generators processing configuration
               - text: _model
               - suffix: .py
 
-      zegrpahql.business.mutations:
+      zegraphql.business.mutations:
         - target: zegraphql/business/mutations/__init__.py
         - target: zegraphql/business/mutations
           template: mutation.mako
@@ -69,7 +69,7 @@ config: # generators processing configuration
               - variable: plural
               - suffix: .py
 
-      zegrpahql.business.queries:
+      zegraphql.business.queries:
         - target: zegraphql/business/queries/__init__.py
         - target: zegraphql/business/queries
           template: query.mako
