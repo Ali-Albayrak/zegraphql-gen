@@ -7,7 +7,7 @@ def generate_imports_and_classes(data):
     classes = []
     for obj_name, obj_details in data.items():
         query_name = get_pascal_case_without_underscore(obj_name) + 'Query'
-        import_statement = f"from .{obj_name} import {query_name}"
+        import_statement = f"from .{obj_details['plural']} import {query_name}"
         imports.append(import_statement)
         classes.append(query_name)
     return imports, classes

@@ -50,6 +50,8 @@ config: # generators processing configuration
           template: model.mako
           data:
             _fields: data
+            app_name: app.name
+            app_provider: app.provider
           iter:
             source: data #source of iterator
             file_name:
@@ -59,6 +61,9 @@ config: # generators processing configuration
 
       zegraphql.business.mutations:
         - target: zegraphql/business/mutations/__init__.py
+          template: mutations/__init__.mako
+          data:
+            data: data
         - target: zegraphql/business/mutations
           template: mutation.mako
           data:
@@ -71,6 +76,9 @@ config: # generators processing configuration
 
       zegraphql.business.queries:
         - target: zegraphql/business/queries/__init__.py
+          template: queries/__init__.mako
+          data:
+            data: data
         - target: zegraphql/business/queries
           template: query.mako
           data:

@@ -1,5 +1,7 @@
 import os
 import enum
+import uuid
+import datetime
 % if 'rel' in [field['field_type'] for field in fields]:
 import importlib
 % endif
@@ -34,10 +36,18 @@ import importlib
                 depends.add('String, ForeignKey')
         return ', '.join(list(depends))
 %>\
+<%!
+    def enum_field_type(field_type):
+        if field_type == 'integer':
+            return 'int'
+        elif field_type == 'decimal':
+            return 'float'
+        return 'str'
+%>\
 from fastapi import HTTPException
 from sqlalchemy import DATETIME, String, ForeignKey
 from sqlalchemy import ${get_column_dependencies(fields)}
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import select
 from core.base_model import BaseModel
@@ -244,7 +254,7 @@ class ${get_pascal_case_without_underscore(field["name"])}Enum(${enum_field_type
 <%!
     def get_field_annotation(field):
         response = ''
-        field_name = field['name']
+        field_name = field.get('name')
         field_type = field['field_type']
         required = field.get('required')
         default = field.get('default')
@@ -256,9 +266,9 @@ class ${get_pascal_case_without_underscore(field["name"])}Enum(${enum_field_type
             response = 'bool'
         elif field_type == 'select':
             if field.get("options") and field.get("options", {}).get("multi"):
-                response = f'List[{get_field_annotation({"field_type": field.get("options", {}).get("type", "text")})}]'
+                response = f'list[{get_field_annotation({"field_type": field.get("options", {}).get("type", "text")})}]'
             else:
-                response = f'{get_pascal_case_without_underscore(field_name)}Enum'
+                response = f'{field["name"].replace("_", " ").replace("-", " ").title().replace(" ", "")}Enum'
         elif field_type == 'json':
             response = 'dict'
         elif field_type == 'date':
@@ -270,7 +280,7 @@ class ${get_pascal_case_without_underscore(field["name"])}Enum(${enum_field_type
         elif field_type == 'email':
             response = 'str'
         elif field_type == 'array':
-            response = f'List[{get_field_annotation({"field_type": field['options']['array_of']})}]'
+            response = f'list[{get_field_annotation({"field_type": field["options"]["array_of"]})}]'
         elif field_type == 'rel':
             response = 'uuid.UUID'
         return response
@@ -293,57 +303,56 @@ class ${get_pascal_case_without_underscore(field["name"])}Enum(${enum_field_type
 %>
 
 
-class ${name.title()}Model(BaseModel):
+class ${get_pascal_case_without_underscore(name)}Model(BaseModel):
     __tablename__ = '${plural}'
     __table_args__ = {'schema': os.environ.get('DEFAULT_SCHEMA', 'public')}
 
     % for field in fields:
-        % if field['field_type'] in ['image', 'file'] :
-            <% field_name = field['name'] %>
-            ${field['name']}: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("public.files.id"))
-            <% continue %>
-        % endif
-    % if field['field_type'] == 'rel':
-        % if field['options'].get('parent'):
-            <% parent_name = field['options']['parent'].replace('$', '') %>
-        % if '$' in field['options'].get('parent', ''):
-            <% parent = {"plural": parent_name} %>
-            ${field['name']} = mapped_column(UUID(as_uuid=True), ForeignKey("zekoder_zeauth.${parent['plural']}s.id"))
-            <% continue %>
-        % endif
-        <% parent = validate_relation(_fields, parent_name) %>
-        ${field['name']} = mapped_column(UUID(as_uuid=True), ForeignKey(os.environ.get('DEFAULT_SCHEMA', 'public') + ".${parent['plural']}.id"))
-        % if "__" in plural:   
-            ${field['name']}__details = relationship("${parent["name"].title()}Model", foreign_keys=[${field['name']}], back_populates='${plural}')
-        % else:
-            ${field['name']}__details = relationship("${parent["name"].title()}Model", foreign_keys=[${field['name']}], back_populates='${field['name']}')
-        % endif
-        <% continue %>
-        % elif field['options'].get('children'):
-            % if '$' in field['options'].get('children', ''):
-                <% child_name = field['options']['children'].replace('$', '') %>
-                <% continue %>
-            % endif
-            <% child_name = field['options']['children'] %> <% child = validate_relation(_fields, child_name) %>
-            % if is_peer_back_populate(child, plural):
-                ${validate_relation(_fields, field['options']['children'])['plural']} = relationship('${child["name"].title()}Model', back_populates='${plural}__details')
-            % else:
-                from business.${child["plural"]}_model import ${child["name"].title()}Model
-                ${field['name']} = relationship('${child["name"].title()}Model', foreign_keys=[${child["name"].title()}Model.${field['name']}], back_populates='${field['name']}__details')
-            % endif
-        % endif
-        <% continue %>
+    % if field['field_type'] in ['image', 'file'] :
+    <% field_name = field['name'] %>
+    ${field['name']}: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("public.files.id"))
+<% continue %>
     % endif
-            <%%>
-    ${field['name']}: Mapped[get_field_annotation(field)] = mapped_column(trans_field_type(field))
+    % if field['field_type'] == 'rel':
+    % if field['options'].get('parent'):
+    <% parent_name = field['options']['parent'].replace('$', '') %>
+    % if '$' in field['options'].get('parent', ''):
+    <% parent = {"plural": parent_name} %>
+    ${field['name']} = mapped_column(UUID(as_uuid=True), ForeignKey("zekoder_zeauth.${parent['plural']}s.id"))
+<% continue %>
+    % endif
+    <% parent = validate_relation(_fields, parent_name) %>
+    ${field['name']} = mapped_column(UUID(as_uuid=True), ForeignKey(os.environ.get('DEFAULT_SCHEMA', 'public') + ".${parent['plural']}.id"))
+    % if "__" in plural:   
+    ${field['name']}__details = relationship("${parent["name"].title()}Model", foreign_keys=[${field['name']}], back_populates='${plural}', lazy='selectin')
+    % else:
+    ${field['name']}__details = relationship("${parent["name"].title()}Model", foreign_keys=[${field['name']}], back_populates='${field['name']}', lazy='selectin')
+    % endif
+<% continue %>
+    % elif field['options'].get('children'):
+    % if '$' in field['options'].get('children', ''):
+    <% child_name = field['options']['children'].replace('$', '') %>
+<% continue %>
+    % endif
+    <% child_name = field['options']['children'] %> <% child = validate_relation(_fields, child_name) %>
+    % if is_peer_back_populate(child, plural):
+    ${validate_relation(_fields, field['options']['children'])['plural']} = relationship('${child["name"].title()}Model', back_populates='${plural}__details', lazy='selectin')
+    % else:
+    from business.db_models.${child["plural"]}_model import ${child["name"].title()}Model
+    ${field['name']} = relationship('${child["name"].title()}Model', foreign_keys=[${child["name"].title()}Model.${field['name']}], back_populates='${field['name']}__details', lazy='selectin')
+    % endif
+    % endif
+<% continue %>
+    % endif
+    ${field['name']}: Mapped[${get_field_annotation(field)}] = mapped_column(${trans_field_type(field)})
     % endfor
 
     @classmethod
     def objects(cls, session):
         % if triggers:
-            return CustomManager(cls, session)
+        return CustomManager(cls, session)
         % else:
-            return Manager(cls, session)
+        return Manager(cls, session)
         % endif
 
 

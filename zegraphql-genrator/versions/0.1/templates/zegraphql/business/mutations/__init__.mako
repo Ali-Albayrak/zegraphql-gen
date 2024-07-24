@@ -7,7 +7,7 @@ def generate_imports_and_classes(data):
     classes = []
     for obj_name, obj_details in data.items():
         mutation_name = get_pascal_case_without_underscore(obj_name) + 'Mutation'
-        import_statement = f"from .{obj_name} import {mutation_name}"
+        import_statement = f"from .{obj_details['plural']} import {mutation_name}"
         imports.append(import_statement)
         classes.append(mutation_name)
     return imports, classes

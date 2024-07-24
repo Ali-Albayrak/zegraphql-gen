@@ -1,24 +1,18 @@
-<%!
-    obj_name = name
-    plural = plural
-%>
-
-## <% for obj_name, obj_details in objects.items(): %>
 import strawberry
 from strawberry.permission import PermissionExtension
-from business.types import ${get_pascal_case_without_underscore(obj_name)}Type, Create${get_pascal_case_without_underscore(obj_name)}Input, Update${get_pascal_case_without_underscore(obj_name)}Input
-from business.db_models.${plural}_model import ${get_pascal_case_without_underscore(obj_name)}Model, , ${get_pascal_case_without_underscore(plural)}Access
+from business.types import ${get_pascal_case_without_underscore(name)}Type, Create${get_pascal_case_without_underscore(name)}Input, Update${get_pascal_case_without_underscore(name)}Input
+from business.db_models.${plural}_model import ${get_pascal_case_without_underscore(name)}Model, ${get_pascal_case_without_underscore(plural)}Access
 from core.depends import GraphQLContext
 from core.auth import Protect
 
 @strawberry.type
-class ${get_pascal_case_without_underscore(obj_name)}Mutation:
+class ${get_pascal_case_without_underscore(name)}Mutation:
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
         ${get_pascal_case_without_underscore(plural)}Access.create_roles()
     ])])])
-    async def create_${obj_name}(self, input: Create${get_pascal_case_without_underscore(obj_name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
+    async def create_${name}(self, input: Create${get_pascal_case_without_underscore(name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(name)}Type:
         db = info.context.db
-        obj = ${get_pascal_case_without_underscore(obj_name)}Model.objects(db)
+        obj = ${get_pascal_case_without_underscore(name)}Model.objects(db)
         new_data = input.to_dict()
         kwargs = {
             "model_data": new_data,
@@ -29,15 +23,15 @@ class ${get_pascal_case_without_underscore(obj_name)}Mutation:
                 "well_known_urls": {}
             }
         }
-        new_${obj_name} = await obj.create(**kwargs)
-        return new_${obj_name}
+        new_${name} = await obj.create(**kwargs)
+        return new_${name}
 
     @strawberry.mutation(extensions=[PermissionExtension(permissions=[Protect([
         ${get_pascal_case_without_underscore(plural)}Access.update_roles()
     ])])])
-    async def update_${obj_name}(self, id: strawberry.ID, input: Update${get_pascal_case_without_underscore(obj_name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(obj_name)}Type:
+    async def update_${name}(self, id: strawberry.ID, input: Update${get_pascal_case_without_underscore(name)}Input, info: strawberry.Info[GraphQLContext]) -> ${get_pascal_case_without_underscore(name)}Type:
         db = info.context.db
-        obj = ${get_pascal_case_without_underscore(obj_name)}Model.objects(db)
+        obj = ${get_pascal_case_without_underscore(name)}Model.objects(db)
         result = await obj.update(id, **input.to_dict())
         return result
 
@@ -45,9 +39,9 @@ class ${get_pascal_case_without_underscore(obj_name)}Mutation:
         ## ${generate_permission(provider_name, app_name, obj_details['plural'], 'delete')}
         ${get_pascal_case_without_underscore(plural)}Access.delete_roles()
     ])])])
-    async def delete_${obj_name}(self, id: strawberry.ID, info: strawberry.Info[GraphQLContext]) -> bool:
+    async def delete_${name}(self, id: strawberry.ID, info: strawberry.Info[GraphQLContext]) -> bool:
         db = info.context.db
-        obj = ${get_pascal_case_without_underscore(obj_name)}Model.objects(db)
+        obj = ${get_pascal_case_without_underscore(name)}Model.objects(db)
         result = await obj.delete(id)
 
         return True
